@@ -44,3 +44,6 @@ erl_crash.dump
 # variables.
 /apps/rumbl/config/prod.secret.exs
 /apps/rumbl/config/dev.secret.exs
+/config/prod.secret.exs
+/config/dev.secret.exs
+
