@@ -1,4 +1,5 @@
 import Player from "./player"
+import {Presence} from "phoenix"
 
 let Video = {
 
@@ -19,6 +20,8 @@ let Video = {
     let msgInput      = document.getElementById("msg-input")
     let postButton    = document.getElementById("msg-submit")
     let vidChannel    = socket.channel("videos:" + videoId)
+    let usrContainer  = document.getElementById("usr-container")
+    let presences     = {}
 
     postButton.addEventListener("click", e => {
       let payload = { body: msgInput.value, at: Player.getCurrentTime()}
@@ -36,20 +39,40 @@ let Video = {
       Player.seekTo(seconds)
     })
 
+    let onJoin = (id, current, newPres) => {
+      if(current){ return }
+      this.renderPresence(id, newPres, usrContainer)
+    }
+
+    let onLeave = (id, current, leftPres) => {
+      if(current.metas.length === 0) {
+        let child = document.getElementById(id)
+        usrContainer.removeChild(child)
+      }
+    }
+
     vidChannel.on("new_annotation", (resp) => {
       vidChannel.params.last_seen_id = resp.id
       this.renderAnnotation(msgContainer, resp)
     })
 
     vidChannel.join()
-      .receive("ok", resp => {
-        let ids = resp.annotations.map(ann => ann.id)
-        if(ids.length > 0) { vidChannel.params.last_seen_id = Math.max(...ids) }
-        this.scheduleMessages(msgContainer, resp.annotations)
-      })
+      .receive("ok", resp => console.log("join success", resp))
       .receive("error", reason => console.log("join failed", reason))
 
-    vidChannel.on("ping", ({count}) => console.log("PING", count))
+    vidChannel.on("annotations", resp => {
+      let ids = resp.annotations.map(ann => ann.id)
+      if(ids.length > 0) { vidChannel.params.last_seen_id = Math.max(...ids) }
+      this.scheduleMessages(msgContainer, resp.annotations)
+    })
+
+    vidChannel.on("presence_state", state => {
+      presences = Presence.syncState(presences, state, onJoin, onLeave)
+    })
+
+    vidChannel.on("presence_diff", diff => {
+      presences = Presence.syncDiff(presences, diff, onJoin, onLeave)
+    })
   },
 
   esc(str) {
@@ -93,8 +116,46 @@ let Video = {
     let date = new Date(null)
     date.setSeconds(at / 1000)
     return date.toISOString().substr(14,5)
-  }
-}
+  },
 
+  listBy({metas: metas, user: user}) {
+    let timestamp = new Date(metas[0].online_at)
+    return {
+      onlineAt: timestamp.toLocaleTimeString(),
+      username: user.username
+    }
+  },
+
+  syncUsers(presence, usrContainer) {
+    usrContainer.innerHTML = ""
+    Presence.list(presences, this.listBy).map(presence => { this.renderUser(presence, usrContainer) })
+  },
+
+  renderPresence(id, presence, usrContainer) {
+    let user = this.buildUser(id, presence)
+    this.renderUser(user, usrContainer)
+  },
+
+  buildUser(id, {user: user, metas: metas}) {
+    let timestamp = new Date(metas[0].online_at)
+    return {
+      onlineAt: timestamp.toLocaleTimeString(),
+      username: user.username,
+      id: id
+    }
+  },
+
+  renderUser(presence, usrContainer) {
+    let template = document.createElement("li")
+    template.setAttribute("class", "list-group-item")
+    template.setAttribute("id", this.esc(presence.id))
+    template.innerHTML =  `
+      <div>${this.esc(presence.username)}</div>
+      <small>since ${presence.onlineAt}</small>
+    `
+    usrContainer.appendChild(template)
+    usrContainer.scrollTop = usrContainer.scrollHeight
+  },
+}
 
 export default Video
