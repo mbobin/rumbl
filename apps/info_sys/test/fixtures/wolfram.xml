@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<queryresult success='true'
+    error='false'
+    numpods='6'
+    datatypes='Math'
+    timedout=''
+    timedoutpods=''
+    timing='0.786'
+    parsetiming='0.148'
+    parsetimedout='false'
+    recalculate=''
+    id='MSPa58222g86gg78815h1fb000054f0ca91ia992852'
+    host='http://www3.wolframalpha.com'
+    server='20'
+    related='http://www3.wolframalpha.com/api/v2/relatedQueries.jsp?id=MSPa58322g86gg78815h1fb00002ifch0gi35825255&amp;s=20'
+    version='2.6'>
+ <pod title='Input'
+     scanner='Identity'
+     id='Input'
+     position='100'
+     error='false'
+     numsubpods='1'>
+  <subpod title=''>
+   <plaintext>1+1</plaintext>
+  </subpod>
+ </pod>
+ <pod title='Result'
+     scanner='StepByStep'
+     id='Result'
+     position='200'
+     error='false'
+     numsubpods='1'
+     primary='true'>
+  <subpod title=''>
+   <plaintext>2</plaintext>
+  </subpod>
+  <states count='1'>
+   <state name='Step-by-step solution'
+       input='Result__Step-by-step solution' />
+  </states>
+ </pod>
+</queryresult>
