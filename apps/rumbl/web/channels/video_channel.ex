@@ -11,7 +11,7 @@ defmodule Rumbl.VideoChannel do
       |> assign(:video_id, video_id)
       |> assign(:last_seen_id, last_seen_id)
 
-    # send(self, :after_join_presence)
+    send(self, :after_join_presence)
     send(self, :after_join_annotations)
 
     {:ok, socket}
